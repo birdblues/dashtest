@@ -41,6 +41,12 @@ button_group2 = dbc.ButtonGroup(
     ], id='forcast-button'
 )
 
+button_group3 = dbc.ButtonGroup(
+    [
+        dbc.Button("LIVE", outline=True, color="danger", size="sm", id='btn-live', active=True),
+    ], id='test-button'
+)
+
 import datetime
 date_string = "2023-12-24"
 date_object = datetime.datetime.strptime(date_string, "%Y-%m-%d")
@@ -68,9 +74,10 @@ chart = html.Div(children=[
         seriesTypes=['candlestick', 'histogram', 'line', 'line', 'line'],
         seriesOptions=[
             {
-                # 'priceLineWidth': 2,
-                # 'title': 'BTC/USDT',
-                # 'axisLabelVisible': True,
+                'priceLineWidth': 2,
+                'title': 'BTC/USDT',
+                'axisLabelVisible': True,
+                'scaleMargins': {'top': 0, 'bottom': 0.2},
             },
             {
                 'color': '#26a69a',
@@ -90,37 +97,47 @@ chart = html.Div(children=[
                 'lineWidth': 1,
                 'lineStyle': 0,
                 'priceLineVisible': False,
-                # 'color': '#f68410',
+                'color': '#f68410',
             },
             {
                 'lineWidth': 1,
                 'lineStyle': 0,
                 'priceLineVisible': False,
-                # 'color': '#ff0808',
+                'color': '#f68410',
             }
         ],
-
         width='100%',
+        height='600px',
         chartOptions= {
+            'crosshair': {
+                'mode': 0,
+            },
+            # 'rightPriceScale': {
+            #     'autoScale': False,
+            #     'scaleMargins': {'top': 0, 'bottom': 0},
+            # },
+            # 'overlayPriceScales': {
+            #     'autoScale': False,
+            # },
             'handleScroll': {
-                "mouseWheel": False,
-                "pressedMouseMove": True,
-                "horzTouchDrag": False,
-                "vertTouchDrag": False,
+                # "mouseWheel": False,
+                # "pressedMouseMove": True,
+                # "horzTouchDrag": False,
+                # "vertTouchDrag": False,
             },
             "handleScale": {
                 "axisPressedMouseMove": True,
                 "mouseWheel": True,
-                "pinch": False,
+                # "pinch": False,
             },
             'timeScale': {
-                'shiftVisibleRangeOnNewBar': True,
+                'shiftVisibleRangeOnNewBar': False,
                 'allowShiftVisibleRangeOnWhitespaceReplacement': False,
                 'rightOffset': 20,
                 # 'fixLeftEdge': True,  
                 # 'fixRightEdge': True,
-                'lockVisibleTimeRangeOnResize': False,
-                # 'borderVisible': True,
+                'lockVisibleTimeRangeOnResize': True,
+                'borderVisible': True,
                 'rightBarStaysOnScroll': False,
                 'timeVisible': True,
                 'secondsVisible': True,
@@ -144,7 +161,7 @@ chart = html.Div(children=[
 app.layout = dbc.Container(
     html.Div([
         html.H3(children=symbol, style={'textAlign':'left'}),
-        dbc.Stack([ button_group, button_group2 ], direction="horizontal", gap=2),
+        dbc.Stack([ button_group, button_group2, button_group3 ], direction="horizontal", gap=2),
         chart,
         dcc.Interval(
         id='timer',
@@ -158,14 +175,14 @@ app.layout = dbc.Container(
     [Output('candlestick-chart', 'seriesData')],
     [Input('timer', 'n_intervals')],
     [State('candlestick-chart', 'seriesData'),
-     State('candlestick-chart', 'fullTimeScaleOptions'),
+     State('candlestick-chart', 'chartOptions'),
      State('active-button', 'children'),
      State('forcast-button', 'children'),
     ],
     prevent_initial_call=False
 )
 def update_data(n, series_data, options, children1, children2):
-    # pprint(options) 
+    pprint(options) 
     active = [i for i in children1 if i['props']['active'] == True]
     if len(active) == 0:
         timeframe = '5T'
@@ -190,7 +207,9 @@ def update_data(n, series_data, options, children1, children2):
 @app.callback(
     [Output('active-button', 'children'),
      Output('forcast-button', 'children'),
-     Output('timer', 'disabled', allow_duplicate=True), ],
+     Output('timer', 'disabled', allow_duplicate=True), 
+     Output('btn-live', 'active', allow_duplicate=True), 
+    ],
     [Input('btn-1m', 'n_clicks_timestamp'),
      Input('btn-5m', 'n_clicks_timestamp'),
      Input('btn-15m', 'n_clicks_timestamp'),
@@ -249,7 +268,21 @@ def update_active_button(t1, t2, t3, t4, t5, t6, t7,
                     if i['props']['n_clicks_timestamp'] == max(timestamps):
                         i['props']['active'] = True
                     
-    return [children1, children2, False]
+    return [children1, children2, False, True]
+
+
+@app.callback(
+    [Output('timer', 'disabled', allow_duplicate=True),
+     Output('btn-live', 'active'),],
+    [Input('btn-live', 'n_clicks')],
+    [State('timer', 'disabled')],
+    prevent_initial_call=True
+)
+def change_props(n, diasbled):
+    if diasbled:
+        return [False, True]
+    else:
+        return [True, False]
 
 @app.callback(
     [Output('candlestick-chart', 'seriesPriceLines')],

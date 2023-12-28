@@ -34,8 +34,8 @@ class BitgetData:
             # 데이터를 가져오기
             while start_time < end_time:
                 #밀리세컨드를 datetime으로 변경
-                print(pd.to_datetime(start_time, unit='ms'))
-                print(pd.to_datetime(end_time, unit='ms'))
+                # print(pd.to_datetime(start_time, unit='ms'))
+                # print(pd.to_datetime(end_time, unit='ms'))
                 ohlcv = self.exchange.fetch_ohlcv(self.symbol, '1m', since=start_time, limit=1000)
                 df = pd.DataFrame(ohlcv, columns=['datetime', 'open', 'high', 'low', 'close', 'volume'])
                 df['datetime'] = pd.to_datetime(df['datetime'], unit='ms')
@@ -66,7 +66,7 @@ class BitgetData:
 
     def run_thread(self):
         while not self.stop_thread:
-            print("Thread 1")
+            # print("Thread 1")
             self.get_ohlcv()
             time.sleep(1)
 
@@ -96,7 +96,7 @@ class BitgetData:
         df.set_index('datetime', inplace=True)
 
         if not self.df.empty and not df.empty:
-            print(self.df.index[-1], "/", df.index[-1])
+            # print(self.df.index[-1], "/", df.index[-1])
             if self.df.index[-1] == df.index[-1]:
                 self.df.update(df)
             else:
