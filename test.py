@@ -7,7 +7,7 @@ api_secret = keyring.get_password("irp_api_secret", "birdblues")
 
 key = api_key
 secret = api_secret
-acc_no = "64012548-29"
+acc_no = "64012548-22"
 mock = False
 
 broker = mojito.KoreaInvestment(
@@ -19,5 +19,5 @@ broker = mojito.KoreaInvestment(
 )
 print(broker)
 
-balance = broker.fetch_balance()
+balance = broker.fetch_balance_domestic_test('', '20231201', '20240102')
 pprint.pprint(balance)

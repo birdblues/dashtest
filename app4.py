@@ -2,19 +2,35 @@
 from dash import *
 import dash_bootstrap_components as dbc
 import dash_tvlwc as tvlwc
-from data_generator import generate_random_ohlc, generate_random_series
-from bitget_data import BitgetData
+from transaction import TransactionData
 
-app = dash.Dash(external_stylesheets=[dbc.themes.DARKLY])
+app = dash.Dash(external_stylesheets=[dbc.themes.CYBORG])
+cyborg_colors = ["#2a9fd6", "#555", "#77b300", "#9933cc",
+    "#ff8800", "#cc0000", "#222", "#000", "#fff"]
 
-data = BitgetData()
+data = TransactionData()
+sdata = data.get_profit_jason()
+sType = ['line'] * len(sdata)
+codes = data.get_code_list()
+names = data.get_code_name()
+sOption = []
+for color, title in zip(cyborg_colors, names):
+    sOption.append({
+        'title': title,
+        'color': color, 
+        'axisLabelVisible': True,
+    })
 
 chart = tvlwc.Tvlwc(
     id='tv-chart-1',
-    seriesData=[data.get_volume_json()],
-    seriesTypes=['line'],
+    seriesData=sdata,
+    seriesTypes=sType,
+    seriesOptions=sOption,
     width='100%',
     chartOptions= {
+        'timeScale': {
+            'rightOffset': 5,
+        },
         'layout': {
             'background': {'type': 'solid', 'color': '#1B2631'},
             'textColor': 'white',
