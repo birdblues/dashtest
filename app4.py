@@ -9,10 +9,12 @@ cyborg_colors = ["#2a9fd6", "#555", "#77b300", "#9933cc",
     "#ff8800", "#cc0000", "#222", "#000", "#fff"]
 
 data = TransactionData()
-sdata = data.get_profit_jason()
+assets = data.get_asset_ratio_jason()
+sdata = []
+for asset in assets.keys():
+    sdata.append(assets[asset])
 sType = ['line'] * len(sdata)
-codes = data.get_code_list()
-names = data.get_code_name()
+names = assets.keys()
 sOption = []
 for color, title in zip(cyborg_colors, names):
     sOption.append({
@@ -29,7 +31,7 @@ chart = tvlwc.Tvlwc(
     width='100%',
     chartOptions= {
         'timeScale': {
-            'rightOffset': 5,
+            'rightOffset': 3,
         },
         'layout': {
             'background': {'type': 'solid', 'color': '#1B2631'},
