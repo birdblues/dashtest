@@ -14,6 +14,7 @@ import pandas as pd
 import websockets
 from Crypto.Cipher import AES
 from Crypto.Util.Padding import unpad
+from pprint import pprint
 
 EXCHANGE_CODE = {
     "홍콩": "HKS",
@@ -895,6 +896,71 @@ class KoreaInvestment:
         data = res.json()
         data['tr_cont'] = res.headers['tr_cont']
         return data
+    
+    def fetch_profit(self, start, end) -> dict:
+        if self.exchange == '서울':
+            output = {}
+
+            data = self.fetch_profit_test(start=start, end=end)
+            output['output1'] = data['output1']
+            output['output2'] = data['output2']
+            
+            # print(data)
+
+            while data['tr_cont'] == 'M':
+                fk100 = data['ctx_area_fk100']
+                nk100 = data['ctx_area_nk100']
+
+                data = self.fetch_profit_test(fk100, nk100)
+                # print(data)
+                output['output1'].extend(data['output1'])
+                output['output2'].update(data['output2'])
+
+            return output
+        else:
+            # 해외주식 잔고
+            output = {}
+            
+            return output
+
+    def fetch_profit_test(self,
+                            start: str = "", end: str = "", 
+                            ctx_area_fk100: str = "", 
+                            ctx_area_nk100: str = "") -> dict:
+        """국내주식주문/주식잔고조회
+        Args:
+            ctx_area_fk100 (str): 연속조회검색조건100
+            ctx_areak_nk100 (str): 연속조회키100
+        Returns:
+            dict: _description_
+        """
+        path = "/uapi/domestic-stock/v1/trading/inquire-period-profit"
+        url = f"{self.base_url}/{path}"
+        headers = {
+            "content-type": "application/json; charset=utf-8",
+            "authorization": self.access_token,
+            "appKey": self.api_key,
+            "appSecret": self.api_secret,
+            "tr_id": "TTTC8708R" if self.mock else "TTTC8708R"
+        }
+        params = {
+            'CANO': self.acc_no_prefix,
+            'ACNT_PRDT_CD': self.acc_no_postfix,
+            "PDNO":"",
+            "INQR_STRT_DT":start,
+            "INQR_END_DT":end,
+            "SORT_DVSN":"00",
+            "INQR_DVSN":"00",
+            "CBLC_DVSN":"00",
+            'CTX_AREA_FK100': ctx_area_fk100,
+            'CTX_AREA_NK100': ctx_area_nk100
+        }
+
+        res = requests.get(url, headers=headers, params=params)
+        data = res.json()
+        pprint(data)
+        data['tr_cont'] = res.headers['tr_cont']
+        return data
 
     def fetch_balance(self) -> dict:
         """잔고 조회
@@ -971,10 +1037,11 @@ class KoreaInvestment:
 
         res = requests.get(url, headers=headers, params=params)
         data = res.json()
+        # print(data)
         data['tr_cont'] = res.headers['tr_cont']
         return data
     
-    def fetch_balance_domestic_test(self, symbol: str, 
+    def fetch_balance_domestic_irp(self, symbol: str, 
                                     start: str = "", end: str = "", 
                                     ctx_area_fk100: str = "", 
                                     ctx_area_nk100: str = "") -> dict:
